@@ -17,12 +17,15 @@
 # Original: https://gist.github.com/748450
 
 #
-# Sample config (/etc/gunicorn/gunicorn.conf):
+# Sample config (/etc/gunicorn.d/application.conf):
 #
-# SERVERS=(
-#	'server_name	socket_or_url	project_path	number_of_workers'
-# )
-# RUN_AS='www-data'
+#APP_NAME="name"
+#APP_DESC="Fancy Description"
+#APP_BIND="0.0.0.0:PORT"
+#APP_PATH="/mnt/webapps/app_directory"
+#APP_MODULE="module:parent_app"
+#APP_WORKERS=1
+#
 #
 # WARNING: user $RUN_AS must have +w on /var/run/gunicorn
 
