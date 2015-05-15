@@ -1,0 +1,124 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:			 gunicorn
+# Required-Start:	 $all
+# Required-Stop:	 $all
+# Default-Start:	 2 3 4 5
+# Default-Stop:		 0 1 6
+# Short-Description: starts the gunicorn server
+# Description:		 starts gunicorn using start-stop-daemon
+### END INIT INFO
+
+# Gunicorn init.d script for redhat/centos
+# Written originally by Wojtek 'suda' Siudzinski <admin@suda.pl>
+# Adapted to redhat/centos by Daniel Lemos <xspager@gmail.com>
+# Gist: https://gist.github.com/1511911
+# Original: https://gist.github.com/748450
+
+#
+# Sample config (/etc/gunicorn/gunicorn.conf):
+#
+# SERVERS=(
+#	'server_name	socket_or_url	project_path	number_of_workers'
+# )
+# RUN_AS='www-data'
+#
+# WARNING: user $RUN_AS must have +w on /var/run/gunicorn
+
+#PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+DAEMON=/usr/bin/gunicorn
+NAME=gunicorn
+DESC=gunicorn
+SERVER="$2"
+VE_PATH=/data/env
+CONF_D=/etc/gunicorn.d/
+LOG_ROOT_PATH=/var/log/gunicorn/
+RUN_AS="python"
+
+test -x $DAEMON || exit 0
+
+# Source function library.
+. /etc/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ "$NETWORKING" = "no" ] && exit 0
+
+#if [ -f /etc/gunicorn/gunicorn.conf ] ; then
+#	. /etc/gunicorn/gunicorn.conf
+#fi
+
+if [ ! -d /var/run/gunicorn ]; then
+	mkdir /var/run/gunicorn
+fi
+
+start () {
+	#for i in "${SERVERS[@]}"
+	for file in $CONF_D/*
+	do
+		:
+		set -- "$file"
+		if [ -f $file ] ; then
+			. $file
+		fi
+		
+		if [ "$SERVER" ]; then
+			if [ "$SERVER" != $APP_NAME ]; then
+				continue
+			fi
+		fi
+		echo -ne "  Spawning $APP_NAME: $APP_DESC"
+		daemon --pidfile /var/run/gunicorn/$APP_NAME.pid $DAEMON -e APP_SETTINGS=$APP_SETTINGS --pythonpath $APP_PATH --user $RUN_AS -b $APP_BIND -w $APP_WORKERS --error-logfile $LOG_ROOT_PATH/$APP_NAME.log --access-logfile $LOG_ROOT_PATH/$APP_NAME.log --log-level warning -D -p /var/run/gunicorn/$APP_NAME.pid $APP_MODULE
+		echo ""
+	done
+	return
+}
+ 
+stop () {
+	for file in $CONF_D/*
+	do
+		:
+		set -- "$file"
+		if [ -f $file ] ; then
+			. $file
+		fi
+		if [ "$SERVER" ]; then
+			if [ "$SERVER" != $APP_NAME ]; then
+				continue
+			fi
+		fi
+		if [ -f /var/run/gunicorn/$APP_NAME.pid ]; then
+			echo -ne "  Killing $APP_NAME: $APP_DESC"
+			killproc -p /var/run/gunicorn/$APP_NAME.pid
+			echo ""
+		fi
+	done	
+}
+
+case "$1" in
+  start)
+		echo "Starting $DESC"
+		start
+		;;
+  stop)
+		echo "Stopping $APP_DESC"
+		stop
+		;;
+  restart)
+		echo "Restarting $APP_DESC"
+		stop
+		sleep 1
+		start
+		;;
+  *)
+		N=/etc/init.d/$NAME
+		echo "Usage: $N {start|stop|restart} [particular_server_to_restart]" >&2
+		exit 1
+		;;
+esac
+
+exit 0
+
