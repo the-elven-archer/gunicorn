@@ -1,2 +1,2 @@
 # gunicorn
-Gunicorn doodles
+gunicorn configuration snippets for CentOS and RHEL.
