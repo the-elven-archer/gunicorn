@@ -74,7 +74,7 @@ start () {
 			fi
 		fi
 		echo -ne "  Spawning $APP_NAME: $APP_DESC"
-		daemon --pidfile /var/run/gunicorn/$APP_NAME.pid $DAEMON -e APP_SETTINGS=$APP_SETTINGS --pythonpath $APP_PATH --user $RUN_AS -b $APP_BIND -w $APP_WORKERS --error-logfile $LOG_ROOT_PATH/$APP_NAME.log --access-logfile $LOG_ROOT_PATH/$APP_NAME.log --log-level warning -t ${APP_TIMEOUT:-30} -D -p /var/run/gunicorn/$APP_NAME.pid $APP_MODULE
+		daemon --pidfile /var/run/gunicorn/$APP_NAME.pid $DAEMON -e APP_SETTINGS=$APP_SETTINGS --pythonpath $APP_PATH --user $RUN_AS -b $APP_BIND -w $APP_WORKERS --error-logfile $LOG_ROOT_PATH/$APP_NAME.log --access-logfile $LOG_ROOT_PATH/$APP_NAME.log --log-level ${APP_LOGLEVEL:-warning} -t ${APP_TIMEOUT:-30} -D -p /var/run/gunicorn/$APP_NAME.pid $APP_MODULE
 		echo ""
 	done
 	return
